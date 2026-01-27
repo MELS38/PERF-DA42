@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>DA42 – Takeoff Performance (EFB)</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --panel2:#0c1628;
+      --text:#e7eefc;
+      --muted:#9fb2d6;
+      --line:rgba(255,255,255,.10);
+      --accent:#7cc4ff;
+      --good:#38d18a;
+      --bad:#ff5c7a;
+      --warn:#ffcc66;
+      --shadow: 0 12px 40px rgba(0,0,0,.45);
+      --radius:18px;
+      --radius2:14px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background:
+        radial-gradient(1200px 700px at 30% 10%, rgba(124,196,255,.12), transparent 55%),
+        radial-gradient(900px 600px at 85% 20%, rgba(56,209,138,.10), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:1120px;margin:22px auto;padding:0 16px 54px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .badge{
+      width:40px;height:40px;border-radius:14px;
+      background: linear-gradient(135deg, rgba(124,196,255,.95), rgba(56,209,138,.9));
+      box-shadow: var(--shadow);
+      position:relative;
+    }
+    .badge:after{
+      content:"";position:absolute;inset:9px;border-radius:11px;
+      background: rgba(11,18,32,.55);
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(6px);
+    }
+    h1{font-size:18px;margin:0}
+    .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+    .topright{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px}
+    .chip{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background: rgba(255,255,255,.04)}
+    .grid{display:grid;grid-template-columns: 1.2fr .8fr;gap:16px}
+    @media (max-width: 980px){.grid{grid-template-columns:1fr}}
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .head{
+      padding:14px 16px;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      background: rgba(255,255,255,.03);
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .card .head .title2{font-size:14px;margin:0;font-weight:650}
+    .card .head .hint{font-size:12px;color:var(--muted)}
+    .card .body{padding:16px}
+    .tabs{
+      display:flex;gap:10px;align-items:center;
+      padding:8px;border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .tab{
+      flex:1;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(15,26,46,.55);
+      color:var(--text);
+      border-radius: 12px;
+      padding:10px 12px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      cursor:pointer;user-select:none;
+      transition: transform .08s ease, border-color .12s ease, background .12s ease;
+    }
+    .tab:hover{transform: translateY(-1px); border-color: rgba(124,196,255,.35)}
+    .tab.active{
+      background: linear-gradient(135deg, rgba(124,196,255,.22), rgba(56,209,138,.12));
+      border-color: rgba(124,196,255,.45);
+    }
+    .tab .label{font-weight:650;font-size:13px}
+    .tab .meta{font-size:12px;color:var(--muted)}
+    .formgrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:12px;
+      margin-top:14px;
+    }
+    @media (max-width: 620px){.formgrid{grid-template-columns:1fr}}
+    .field{
+      background: rgba(12,22,40,.55);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius2);
+      padding:12px 12px 10px;
+    }
+    .field label{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px}
+    .field input, .field select{
+      width:100%;padding:11px 12px;border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      outline:none;
+    }
+    .field input::placeholder{color: rgba(159,178,214,.55)}
+    .sectiontitle{margin:18px 0 10px;color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+    .options{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:10px;
+    }
+    @media (max-width: 740px){.options{grid-template-columns:1fr}}
+    .opt{
+      display:flex;align-items:flex-start;gap:10px;
+      padding:12px 12px;border-radius: var(--radius2);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(12,22,40,.50);
+      cursor:pointer;transition: border-color .12s ease, transform .08s ease;
+      user-select:none;
+    }
+    .opt:hover{transform: translateY(-1px); border-color: rgba(124,196,255,.30)}
+    .opt input{margin-top:2px}
+    .opt .t{font-weight:650;font-size:13px}
+    .opt .d{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.2}
+    .divider{height:1px;background: rgba(255,255,255,.08);margin:14px 0}
+    .row{display:grid;grid-template-columns: 1fr 1fr;gap:10px}
+    .pillrow{display:flex;gap:10px;flex-wrap:wrap}
+    .pill{border:1px solid rgba(255,255,255,.10);background: rgba(255,255,255,.04);padding:8px 10px;border-radius:999px;color:var(--muted);font-size:12px}
+    .results{display:grid;gap:12px}
+    .kpi{
+      padding:14px 14px;border-radius: var(--radius);
+      background: rgba(12,22,40,.58);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .kpi .k{color:var(--muted);font-size:12px}
+    .kpi .v{font-size:22px;font-weight:750;margin-top:6px}
+    .kpi .s{font-size:12px;color:var(--muted);margin-top:4px}
+    .verdict{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:14px;border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(135deg, rgba(124,196,255,.10), rgba(56,209,138,.06));
+    }
+    .verdict.good{border-color: rgba(56,209,138,.35); background: linear-gradient(135deg, rgba(56,209,138,.14), rgba(124,196,255,.08));}
+    .verdict.bad{border-color: rgba(255,92,122,.45); background: linear-gradient(135deg, rgba(255,92,122,.18), rgba(255,204,102,.06));}
+    .verdict .left .big{font-weight:800;font-size:15px}
+    .verdict .left .small{color:var(--muted);font-size:12px;margin-top:3px}
+    .status{
+      padding:10px 12px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color:var(--muted);font-size:12px;white-space:nowrap;
+    }
+    .status.good{border-color: rgba(56,209,138,.35); color: rgba(56,209,138,.95);}
+    .status.bad{border-color: rgba(255,92,122,.45); color: rgba(255,92,122,.98);}
+    .status.warn{border-color: rgba(255,204,102,.45); color: rgba(255,204,102,.98);}
+    .footnote{color:var(--muted);font-size:11.5px;margin-top:14px;line-height:1.4}
+    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{
+      padding:10px 12px;border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color:var(--text);cursor:pointer;user-select:none;font-weight:650;
+    }
+    .btn.primary{
+      border-color: rgba(124,196,255,.35);
+      background: rgba(124,196,255,.12);
+    }
+    .btn:active{transform: translateY(1px)}
+    .alert{
+      border:1px solid rgba(255,204,102,.35);
+      background: rgba(255,204,102,.08);
+      color: rgba(255,204,102,.95);
+      padding:10px 12px;border-radius: 14px;
+      font-size:12px;line-height:1.35;
+      display:none;
+    }
+    .alert.show{display:block}
+    .mono{font-variant-numeric: tabular-nums;}
+  
+    /* iOS / touch improvements */
+    .wrap{
+      padding-left: calc(16px + env(safe-area-inset-left));
+      padding-right: calc(16px + env(safe-area-inset-right));
+      padding-bottom: calc(54px + env(safe-area-inset-bottom));
+    }
+    .field input, .field select{
+      min-height: 44px;
+      font-size: 16px; /* prevents iOS auto-zoom */
+    }
+    .btn{min-height:44px; padding:12px 14px}
+    .opt{min-height:44px}
+    @supports (height: 100dvh){
+      body{min-height:100dvh}
+    }
+
+    /* Mobile: sticky summary bar */
+    .iosbar{
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 999;
+      padding: 10px calc(14px + env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-right));
+      background: rgba(11,18,32,.72);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255,255,255,.10);
+      display: none;
+    }
+    .iosbar .inner{
+      max-width:1120px;
+      margin: 0 auto;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .iosbar .kpis{
+      display:flex;
+      gap:10px;
+      align-items:stretch;
+      flex: 1;
+      min-width: 0;
+    }
+    .iosbar .mini{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      border-radius: 14px;
+      padding: 10px 12px;
+      min-width: 0;
+      flex: 1;
+    }
+    .iosbar .mini .k{
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .iosbar .mini .v{
+      font-size: 15px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .iosbar .mini .v.good{color: rgba(56,209,138,.95)}
+    .iosbar .mini .v.bad{color: rgba(255,92,122,.98)}
+    .iosbar .actions{
+      display:flex;
+      gap:10px;
+      flex: 0 0 auto;
+    }
+    .iosbar .btn{
+      padding: 12px 14px;
+      border-radius: 14px;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr}
+      .iosbar{display:block}
+      .wrap{padding-bottom: calc(140px + env(safe-area-inset-bottom));}
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="badge" aria-hidden="true"></div>
+        <div>
+          <h1>DA42 VI — Takeoff Performance</h1>
+          <div class="sub">Interpolation + facteurs vent/piste + marge TORA (MTOM)</div>
+        </div>
+      </div>
+      <div class="topright">
+        <div class="chip">Units: kt / ft / °C / m</div>
+        <div class="chip">Tables: MTOM 1999 kg</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Inputs -->
+      <section class="card">
+        <div class="head">
+          <div>
+            <div class="title2">Inputs</div>
+            <div class="hint">Renseigne les champs, puis “Compute”</div>
+          </div>
+          <div class="pillrow">
+            <div class="pill">Normal = FLAPS UP</div>
+            <div class="pill">Short = FLAPS APP</div>
+          </div>
+        </div>
+
+        <div class="body">
+          <div class="tabs" role="tablist" aria-label="Takeoff configuration tabs">
+            <div class="tab active" data-mode="normal" role="tab" aria-selected="true">
+              <div>
+                <div class="label">Normal Takeoff</div>
+                <div class="meta">FLAPS UP</div>
+              </div>
+              <div class="meta">MTOM</div>
+            </div>
+            <div class="tab" data-mode="short" role="tab" aria-selected="false">
+              <div>
+                <div class="label">Short Takeoff</div>
+                <div class="meta">FLAPS APP</div>
+              </div>
+              <div class="meta">MTOM</div>
+            </div>
+          </div>
+
+          <div class="formgrid" aria-label="Primary inputs">
+            <div class="field">
+              <label>Runway QFU <span>°</span></label>
+              <input id="rwq" type="number" inputmode="numeric" min="0" max="360" placeholder="ex: 270" />
+            </div>
+            <div class="field">
+              <label>TORA <span>m</span></label>
+              <input id="tora" type="number" inputmode="decimal" min="0" placeholder="ex: 1800" />
+            </div>
+
+            <div class="field">
+              <label>Wind direction <span>°</span></label>
+              <input id="wdir" type="number" inputmode="numeric" min="0" max="360" placeholder="ex: 240" />
+            </div>
+            <div class="field">
+              <label>Wind speed <span>kt</span></label>
+              <input id="wspd" type="number" inputmode="decimal" min="0" placeholder="ex: 12" />
+            </div>
+
+            <div class="field">
+              <label>Pressure altitude <span>ft</span></label>
+              <input id="pa" type="number" inputmode="decimal" placeholder="ex: 1350" />
+            </div>
+            <div class="field">
+              <label>OAT <span>°C</span></label>
+              <input id="oat" type="number" inputmode="decimal" placeholder="ex: 18" />
+            </div>
+
+            <div class="field" style="grid-column:1 / -1;">
+              <label>Output mode</label>
+              <select id="outmode">
+                <option value="50">Takeoff distance over 50 ft</option>
+                <option value="gr">Ground roll</option>
+                <option value="both">Both</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="sectiontitle">Runway / corrections</div>
+          <div class="options" aria-label="Runway corrections options">
+            <label class="opt">
+              <input type="radio" name="grassdry" value="0" checked />
+              <div>
+                <div class="t">Paved / none</div>
+                <div class="d">No grass correction</div>
+              </div>
+            </label>
+            <label class="opt">
+              <input type="radio" name="grassdry" value="0.10" />
+              <div>
+                <div class="t">Grass runway — dry (5 cm)</div>
+                <div class="d">+10%</div>
+              </div>
+            </label>
+
+            <label class="opt">
+              <input type="radio" name="grassdry" value="0.15" />
+              <div>
+                <div class="t">Grass runway — dry (5–10 cm)</div>
+                <div class="d">+15%</div>
+              </div>
+            </label>
+
+            <label class="opt">
+              <input type="radio" name="grassdry" value="0.25" />
+              <div>
+                <div class="t">Grass runway — dry (25 cm)</div>
+                <div class="d">+25%</div>
+              </div>
+            </label>
+
+            <label class="opt">
+              <input type="radio" name="grassdry" value="NO" />
+              <div>
+                <div class="t">Grass runway — &gt; 25 cm</div>
+                <div class="d">Take-off should not be attempted</div>
+              </div>
+            </label>
+
+            <label class="opt">
+              <input id="grasswet" type="checkbox" />
+              <div>
+                <div class="t">Grass runway — wet</div>
+                <div class="d">+10% (en plus du calcul “dry grass”)</div>
+              </div>
+            </label>
+
+            <label class="opt">
+              <input id="soft" type="checkbox" />
+              <div>
+                <div class="t">Soft ground</div>
+                <div class="d">+45% (en plus si applicable)</div>
+              </div>
+            </label>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row">
+            <div class="field">
+              <label>Uphill slope <span>%</span></label>
+              <input id="slope" type="number" inputmode="decimal" min="0" placeholder="ex: 1.5" />
+            </div>
+            <div class="field">
+              <label>Table weight</label>
+              <select id="weight" title="Optionnel si ton avion est en MTOM 1900 kg.">
+                <option value="1999" selected>1999 kg (MTOM option)</option>
+                <option value="1900">1900 kg</option>
+                <option value="1700">1700 kg</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btnrow" aria-label="Action buttons">
+            <button class="btn primary" id="compute">Compute</button>
+            <button class="btn" id="reset" type="button">Reset</button>
+          </div>
+
+          <div id="alert" class="alert"></div>
+
+          <div class="footnote">
+            Interpolation bilinéaire PA×OAT sur les tables. Si une zone est “non publiée” (cellules noires/diagonales),
+            l’outil renvoie “N/A” et affiche un warning.
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Results -->
+      <aside class="card">
+        <div class="head">
+          <div>
+            <div class="title2">Results</div>
+            <div class="hint">Vent composante + distances corrigées + marge</div>
+          </div>
+          <div class="pillrow">
+            <div class="pill mono" id="modepill">Mode: Normal</div>
+          </div>
+        </div>
+
+        <div class="body">
+          <div class="results">
+            <div class="kpi">
+              <div class="k">Headwind / Tailwind</div>
+              <div class="v mono" id="hw">—</div>
+              <div class="s mono" id="hwdesc">—</div>
+            </div>
+
+            <div class="kpi">
+              <div class="k">Crosswind</div>
+              <div class="v mono" id="xw">—</div>
+              <div class="s mono" id="xwdesc">—</div>
+            </div>
+
+            <div class="kpi">
+              <div class="k">Corrected distance</div>
+              <div class="v mono" id="dist">—</div>
+              <div class="s mono" id="distdesc">—</div>
+            </div>
+
+            <div class="kpi">
+              <div class="k">TORA margin</div>
+              <div class="v mono" id="margin">—</div>
+              <div class="s mono" id="margindesc">—</div>
+            </div>
+
+            <div class="verdict" id="verdict">
+              <div class="left">
+                <div class="big mono" id="verdictText">Verdict: —</div>
+                <div class="small" id="verdictSub">Waiting for inputs</div>
+              </div>
+              <div class="status" id="status">—</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="sectiontitle">Details</div>
+          <div class="footnote mono" id="details">
+            —
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+/**
+ * Tables encodées depuis les pages Take-Off (MTOM 1999 / 1900 / 1700) :
+ * - Normal Procedure (FLAPS UP)
+ * - Short Field Procedure (FLAPS APP)
+ *
+ * Grille:
+ *  ALT_ft = [0,1000,...,10000]
+ *  OAT_C  = [0,10,20,30,40,50]
+ * Valeurs en mètres (m).
+ * Les cellules “non publiées” sont null.
+ */
+const GRID_ALT = [0,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000];
+const GRID_OAT = [0,10,20,30,40,50];
+
+// Helper to create 2D arrays from row lists
+function A(rows){ return rows; }
+
+const TABLES = {
+  // Weight: 1999 kg
+  "1999": {
+    normal: {
+      gr: A([
+        [400,420,440,470,560,680],
+        [420,440,470,510,610,730],
+        [440,460,500,540,660,790],
+        [460,490,520,590,710,860],
+        [490,520,560,640,780,930],
+        [520,550,600,690,840,null],
+        [550,580,640,760,920,null],
+        [580,620,680,820,990,null],
+        [620,660,730,900,1080,null],
+        [660,710,800,980,1180,null],
+        [700,770,900,1100,null,null],
+      ]),
+      d50: A([
+        [730,760,790,870,1050,1330],
+        [760,800,840,930,1150,1450],
+        [800,840,890,1000,1260,1570],
+        [840,880,940,1080,1360,1710],
+        [880,920,1000,1170,1490,1850],
+        [920,980,1070,1280,1620,null],
+        [970,1030,1140,1400,1760,null],
+        [1030,1100,1220,1530,1910,null],
+        [1090,1170,1320,1660,2080,null],
+        [1150,1240,1450,1840,2280,null],
+        [1230,1360,1640,2110,null,null],
+      ])
+    },
+    short: {
+      gr: A([
+        [350,370,390,420,500,610],
+        [370,390,410,450,540,660],
+        [390,410,440,490,590,720],
+        [410,440,470,530,650,790],
+        [440,460,500,580,710,860],
+        [470,490,540,630,780,null],
+        [500,530,580,690,850,null],
+        [530,560,620,760,930,null],
+        [560,600,670,830,1010,null],
+        [600,650,740,920,1120,null],
+        [650,710,840,1040,null,null],
+      ]),
+      d50: A([
+        [600,640,670,730,890,1120],
+        [640,670,710,790,980,1230],
+        [670,710,760,850,1080,1360],
+        [710,750,810,930,1180,1500],
+        [750,790,870,1020,1300,1640],
+        [790,840,930,1130,1440,null],
+        [840,900,1000,1240,1590,null],
+        [900,960,1080,1380,1750,null],
+        [950,1030,1180,1520,1940,null],
+        [1020,1110,1320,1710,2200,null],
+        [1100,1230,1520,2010,null,null],
+      ])
+    }
+  },
+
+  // Weight: 1900 kg (from page 188/?? short and page 185 normal) — encoded to match UI dropdown
+  "1900": {
+    normal: {
+      gr: A([
+        [370,390,410,450,520,640],
+        [390,410,440,480,570,690],
+        [420,440,470,510,620,750],
+        [440,460,490,550,670,810],
+        [460,490,530,600,730,880],
+        [490,520,560,650,790,null],
+        [520,550,600,710,860,null],
+        [550,590,640,780,930,null],
+        [580,620,690,840,1010,null],
+        [620,670,760,920,1110,null],
+        [660,720,840,1030,null,null],
+      ]),
+      d50: A([
+        [670,710,730,800,960,1210],
+        [710,740,780,860,1060,1310],
+        [740,770,820,920,1150,1420],
+        [770,810,870,990,1250,1550],
+        [810,850,920,1080,1350,1670],
+        [850,900,990,1180,1470,null],
+        [900,950,1050,1280,1600,null],
+        [950,1010,1130,1400,1740,null],
+        [1000,1080,1210,1520,1880,null],
+        [1060,1150,1330,1680,2090,null],
+        [1140,1250,1500,1910,null,null],
+      ])
+    },
+    short: {
+      gr: A([
+        [330,350,370,400,470,570],
+        [350,370,390,430,510,630],
+        [370,390,420,460,560,680],
+        [390,410,440,500,610,740],
+        [410,440,470,540,670,810],
+        [440,470,510,600,730,null],
+        [470,500,540,650,800,null],
+        [500,530,590,720,870,null],
+        [530,570,640,780,950,null],
+        [570,610,700,860,1050,null],
+        [610,670,790,980,null,null],
+      ]),
+      d50: A([
+        [560,590,620,680,820,1030],
+        [590,620,660,730,900,1130],
+        [620,660,700,790,990,1240],
+        [660,690,750,860,1090,1360],
+        [700,740,800,940,1190,1490],
+        [740,780,860,1040,1310,null],
+        [780,840,930,1140,1440,null],
+        [830,890,1000,1260,1590,null],
+        [890,960,1090,1390,1750,null],
+        [950,1030,1210,1550,1980,null],
+        [1020,1140,1380,1810,null,null],
+      ])
+    }
+  },
+
+  // Weight: 1700 kg (tables)
+  "1700": {
+    normal: {
+      gr: A([
+        [330,350,360,390,460,560],
+        [350,360,390,420,500,600],
+        [370,390,410,450,540,650],
+        [390,410,440,480,590,710],
+        [410,430,460,530,640,770],
+        [430,460,490,580,700,null],
+        [460,490,530,630,760,null],
+        [480,520,560,680,820,null],
+        [520,550,610,740,890,null],
+        [550,590,670,810,970,null],
+        [590,640,740,910,null,null],
+      ]),
+      d50: A([
+        [580,600,630,680,810,1010],
+        [598,630,670,730,890,1100],
+        [630,660,700,780,970,1190],
+        [660,700,740,840,1050,1290],
+        [700,730,790,910,1140,1390],
+        [730,770,840,1000,1240,null],
+        [770,820,900,1090,1340,null],
+        [810,870,960,1180,1450,null],
+        [860,920,1030,1290,1570,null],
+        [910,980,1130,1410,1740,null],
+        [980,1070,1270,1600,null,null],
+      ])
+    },
+    short: {
+      gr: A([
+        [290,310,320,350,410,500],
+        [310,320,340,380,450,550],
+        [330,350,370,410,490,600],
+        [350,360,390,440,540,650],
+        [370,390,420,480,590,710],
+        [390,410,450,520,640,null],
+        [410,440,480,580,700,null],
+        [440,470,520,630,770,null],
+        [470,500,560,690,840,null],
+        [500,540,620,760,930,null],
+        [540,590,690,860,null,null],
+      ]),
+      d50: A([
+        [490,510,540,590,700,870],
+        [510,540,570,630,770,950],
+        [540,570,610,680,840,1040],
+        [570,600,650,730,920,1140],
+        [600,640,690,810,1010,1250],
+        [640,680,740,880,1100,null],
+        [680,720,800,970,1210,null],
+        [720,770,860,1070,1330,null],
+        [760,820,930,1170,1460,null],
+        [820,880,1030,1300,1630,null],
+        [880,970,1170,1500,null,null],
+      ])
+    }
+  }
+};
+
+function clamp(v, lo, hi){ return Math.min(hi, Math.max(lo, v)); }
+
+function normalizeDeg(d){
+  let x = d % 360;
+  if (x < 0) x += 360;
+  return x;
+}
+function wrap180(d){
+  let x = ((d + 180) % 360) - 180;
+  if (x < -180) x += 360;
+  return x;
+}
+
+function fmtNum(x, digits=0){
+  if (x === null || x === undefined || Number.isNaN(x)) return "N/A";
+  return x.toFixed(digits);
+}
+
+/**
+ * Bilinear interpolation on grid with possible null cells.
+ * Returns {value, note}
+ */
+function bilinear(grid, xVals, yVals, x, y){
+  // x = PA, y = OAT
+  const note = [];
+  // clamp within bounds but note
+  const x0 = xVals[0], xN = xVals[xVals.length-1];
+  const y0 = yVals[0], yN = yVals[yVals.length-1];
+
+  let xc = x, yc = y;
+  if (x < x0){ xc = x0; note.push("PA below table → clamped to SL"); }
+  if (x > xN){ xc = xN; note.push("PA above table → clamped to 10000 ft"); }
+  if (y < y0){ yc = y0; note.push("OAT below table → clamped to 0°C"); }
+  if (y > yN){ yc = yN; note.push("OAT above table → clamped to 50°C (caution)"); }
+
+  // find bracketing indices
+  function bracket(vals, v){
+    for (let i=0;i<vals.length-1;i++){
+      if (v >= vals[i] && v <= vals[i+1]) return [i, i+1];
+    }
+    return [vals.length-2, vals.length-1]; // edge
+  }
+  const [ix0, ix1] = bracket(xVals, xc);
+  const [iy0, iy1] = bracket(yVals, yc);
+
+  const xA=xVals[ix0], xB=xVals[ix1];
+  const yA=yVals[iy0], yB=yVals[iy1];
+  const tx = (xB===xA)?0:( (xc-xA)/(xB-xA) );
+  const ty = (yB===yA)?0:( (yc-yA)/(yB-yA) );
+
+  const Q11 = grid[ix0][iy0];
+  const Q21 = grid[ix1][iy0];
+  const Q12 = grid[ix0][iy1];
+  const Q22 = grid[ix1][iy1];
+
+  // If any corner null, try degrade to 1D if possible
+  const corners = [Q11,Q21,Q12,Q22];
+  const allOk = corners.every(v => v !== null && v !== undefined);
+  if (!allOk){
+    // Try interpolate along y at ix0 if both exist
+    const g0a = Q11, g0b = Q12;
+    const g1a = Q21, g1b = Q22;
+
+    function lerp(a,b,t){ return a + (b-a)*t; }
+
+    // If x exactly on a grid line, do 1D along y
+    if (ix0 === ix1 || xA === xB){
+      if (g0a!=null && g0b!=null) return {value: lerp(g0a,g0b,ty), note: note.concat(["Missing cells → 1D interpolation (OAT)"])};
+      return {value: null, note: note.concat(["Requested point falls into non-published area"])};
+    }
+    // If y exactly on grid line, do 1D along x
+    if (iy0 === iy1 || yA === yB){
+      if (Q11!=null && Q21!=null) return {value: lerp(Q11,Q21,tx), note: note.concat(["Missing cells → 1D interpolation (PA)"])};
+      return {value: null, note: note.concat(["Requested point falls into non-published area"])};
+    }
+
+    // Try: compute interpolated on each x line if possible, then interpolate x
+    let v0 = null, v1 = null;
+    if (g0a!=null && g0b!=null) v0 = lerp(g0a,g0b,ty);
+    if (g1a!=null && g1b!=null) v1 = lerp(g1a,g1b,ty);
+    if (v0!=null && v1!=null) return {value: lerp(v0,v1,tx), note: note.concat(["Missing cells → 2-step interpolation"])};
+
+    return {value: null, note: note.concat(["Requested point falls into non-published area"])};
+  }
+
+  const v =
+    Q11*(1-tx)*(1-ty) +
+    Q21*(tx)*(1-ty) +
+    Q12*(1-tx)*(ty) +
+    Q22*(tx)*(ty);
+  return {value: v, note};
+}
+
+function getRadioValue(name){
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : null;
+}
+
+let MODE = "normal"; // normal | short
+
+const tabs = document.querySelectorAll(".tab");
+tabs.forEach((t) => {
+  t.addEventListener("click", () => {
+    tabs.forEach(x => { x.classList.remove("active"); x.setAttribute("aria-selected","false"); });
+    t.classList.add("active");
+    t.setAttribute("aria-selected","true");
+    MODE = t.dataset.mode;
+    document.getElementById("modepill").textContent = `Mode: ${MODE==="normal"?"Normal":"Short"}`;
+  });
+});
+
+function showAlert(lines){
+  const a = document.getElementById("alert");
+  if (!lines || lines.length===0){
+    a.classList.remove("show");
+    a.innerHTML = "";
+    return;
+  }
+  a.classList.add("show");
+  a.innerHTML = lines.map(x => `• ${x}`).join("<br/>");
+}
+
+
+function updateIOSBar(){
+  const dist = document.getElementById("dist")?.textContent ?? "—";
+  const margin = document.getElementById("margin")?.textContent ?? "—";
+  const verdict = document.getElementById("verdictText")?.textContent ?? "Verdict: —";
+
+  const iosDist = document.getElementById("ios_dist");
+  const iosMargin = document.getElementById("ios_margin");
+  const iosVerdict = document.getElementById("ios_verdict");
+
+  if (iosDist) iosDist.textContent = dist;
+  if (iosMargin) iosMargin.textContent = margin;
+  if (iosVerdict) iosVerdict.textContent = verdict.replace("Verdict: ","");
+
+  if (iosVerdict){
+    iosVerdict.classList.remove("good","bad");
+    const v = verdict.toLowerCase();
+    if (v.includes("ok") && !v.includes("not ok")) iosVerdict.classList.add("good");
+    if (v.includes("not ok") || v.includes("do not attempt")) iosVerdict.classList.add("bad");
+  }
+}
+
+function compute(){
+  const rwq = parseFloat(document.getElementById("rwq").value);
+  const tora = parseFloat(document.getElementById("tora").value);
+  const wdir = parseFloat(document.getElementById("wdir").value);
+  const wspd = parseFloat(document.getElementById("wspd").value);
+  const pa   = parseFloat(document.getElementById("pa").value);
+  const oat  = parseFloat(document.getElementById("oat").value);
+  const outmode = document.getElementById("outmode").value;
+  const slope = parseFloat(document.getElementById("slope").value || "0");
+  const wet = document.getElementById("grasswet").checked;
+  const soft = document.getElementById("soft").checked;
+  const grassDry = getRadioValue("grassdry");
+  const weight = document.getElementById("weight").value;
+
+  const warn = [];
+  const need = [
+    ["Runway QFU", rwq],
+    ["TORA", tora],
+    ["Wind dir", wdir],
+    ["Wind speed", wspd],
+    ["Pressure alt", pa],
+    ["OAT", oat],
+  ].filter(([_,v]) => Number.isNaN(v));
+  if (need.length){
+    showAlert(["Remplis tous les champs: " + need.map(x => x[0]).join(", ")]);
+    setWaiting();
+    return;
+  }
+
+  if (grassDry === "NO"){
+    warn.push("Grass > 25 cm: take-off should not be attempted.");
+  }
+  if (slope < 0) warn.push("Slope négative: non gérée (mets 0 si downhill).");
+  if (Number.isNaN(slope)) warn.push("Slope invalide → 0% appliqué.");
+
+  const rwqN = normalizeDeg(rwq);
+  const wdirN = normalizeDeg(wdir);
+  const delta = wrap180(wdirN - rwqN);
+  const rad = delta * Math.PI/180;
+
+  const head = wspd * Math.cos(rad); // + = headwind
+  const cross = wspd * Math.sin(rad); // + = from right? (sign indicates direction)
+  const headAbs = Math.abs(head);
+  const crossAbs = Math.abs(cross);
+
+  const headStr = head >= 0 ? `HW ${fmtNum(head,1)} kt` : `TW ${fmtNum(-head,1)} kt`;
+  const xwSide = cross >= 0 ? "from right" : "from left";
+
+  // Interpolate base distances from tables
+  const tab = TABLES[weight][MODE];
+  const gr0 = bilinear(tab.gr, GRID_ALT, GRID_OAT, pa, oat);
+  const d50 = bilinear(tab.d50, GRID_ALT, GRID_OAT, pa, oat);
+
+  // Build factors
+  // Wind factor: -10% per 14 kt headwind; +10% per 3 kt tailwind
+  let windFactor = 1.0;
+  if (head > 0){
+    windFactor *= (1 - 0.10 * (head/14.0));
+  } else if (head < 0){
+    windFactor *= (1 + 0.10 * ((-head)/3.0));
+  }
+  // Prevent insane negative
+  windFactor = Math.max(0.10, windFactor);
+
+  // Runway factors (applied to both outputs as conservative)
+  let runwayFactor = 1.0;
+  if (grassDry && grassDry !== "NO"){
+    runwayFactor *= (1 + parseFloat(grassDry));
+    if (wet) runwayFactor *= 1.10;
+  } else {
+    if (wet) warn.push("Grass wet coché mais grass dry = none → ignoré.");
+  }
+  if (soft) runwayFactor *= 1.45;
+  if (!Number.isNaN(slope) && slope > 0){
+    runwayFactor *= (1 + 0.09*slope); // +9% per 1%
+  }
+
+  // Output selection
+  let base = null, baseLabel = "";
+  let notes = [];
+  if (outmode === "gr"){
+    base = gr0.value;
+    baseLabel = "Ground roll";
+    notes = notes.concat(gr0.note);
+  } else if (outmode === "50"){
+    base = d50.value;
+    baseLabel = "50 ft distance";
+    notes = notes.concat(d50.note);
+  } else { // both
+    // We'll compute corrected for both and show 50ft as primary plus note
+    base = d50.value;
+    baseLabel = "50 ft distance (primary)";
+    notes = notes.concat(d50.note);
+  }
+
+  // If non published -> N/A
+  const nonPublished = (base === null || base === undefined || Number.isNaN(base));
+  const nonPublishedGR = (gr0.value===null || gr0.value===undefined);
+  const nonPublished50 = (d50.value===null || d50.value===undefined);
+
+  // Compute corrected values
+  let correctedGR = nonPublishedGR ? null : gr0.value * windFactor * runwayFactor;
+  let corrected50 = nonPublished50 ? null : d50.value * windFactor * runwayFactor;
+
+  // Choose distance used for margin
+  let distUsed = null;
+  let distDesc = "";
+  if (outmode === "gr"){
+    distUsed = correctedGR;
+    distDesc = "Using ground roll";
+  } else if (outmode === "50"){
+    distUsed = corrected50;
+    distDesc = "Using 50 ft distance";
+  } else {
+    distUsed = corrected50;
+    distDesc = "Primary: 50 ft (also computes ground roll)";
+  }
+
+  // Margin
+  let margin = null;
+  if (distUsed != null) margin = tora - distUsed;
+
+  // Warnings for missing areas
+  if (outmode === "both"){
+    if (nonPublishedGR) warn.push("Ground roll: N/A (non-published area).");
+    if (nonPublished50) warn.push("50 ft distance: N/A (non-published area).");
+  } else if (nonPublished){
+    warn.push("Requested point is in a non-published area of the table (cells black/diagonal).");
+  }
+
+  // Update UI KPIs
+  document.getElementById("hw").textContent = headStr;
+  document.getElementById("hwdesc").textContent = `Δ = ${fmtNum(delta,0)}° · wind factor = ${fmtNum(windFactor,3)}`;
+  document.getElementById("xw").textContent = `${fmtNum(crossAbs,1)} kt`;
+  document.getElementById("xwdesc").textContent = `${xwSide} · signed ${fmtNum(cross,1)} kt`;
+
+  // Distance KPI
+  const distEl = document.getElementById("dist");
+  const distDescEl = document.getElementById("distdesc");
+
+  if (outmode === "both"){
+    const d1 = corrected50==null ? "N/A" : `${fmtNum(corrected50,0)} m`;
+    const d2 = correctedGR==null ? "N/A" : `${fmtNum(correctedGR,0)} m`;
+    distEl.textContent = d1;
+    distDescEl.textContent = `50 ft: ${d1} · GR: ${d2} · runway factor = ${fmtNum(runwayFactor,3)}`;
+  } else {
+    distEl.textContent = distUsed==null ? "N/A" : `${fmtNum(distUsed,0)} m`;
+    distDescEl.textContent = `${distDesc} · runway factor = ${fmtNum(runwayFactor,3)}`;
+  }
+
+  // Margin KPI
+  document.getElementById("margin").textContent = margin==null ? "N/A" : `${fmtNum(margin,0)} m`;
+  document.getElementById("margindesc").textContent = margin==null ? "—" : `TORA ${fmtNum(tora,0)} − DIST ${fmtNum(distUsed,0)}`;
+
+  // Verdict
+  const verdict = document.getElementById("verdict");
+  const verdictText = document.getElementById("verdictText");
+  const verdictSub = document.getElementById("verdictSub");
+  const status = document.getElementById("status");
+
+  verdict.classList.remove("good","bad");
+  status.classList.remove("good","bad","warn");
+
+  let v = "—", s = "—", sub = "—";
+
+  if (grassDry === "NO"){
+    v = "NOT OK";
+    s = "DO NOT ATTEMPT";
+    sub = "Grass longer than 25 cm";
+    verdict.classList.add("bad");
+    status.classList.add("bad");
+  } else if (distUsed == null || margin == null){
+    v = "N/A";
+    s = "CHECK LIMITS";
+    sub = "Performance not available for these conditions";
+    status.classList.add("warn");
+  } else if (margin >= 0){
+    v = "OK";
+    s = "MARGIN";
+    sub = `Positive margin: ${fmtNum(margin,0)} m`;
+    verdict.classList.add("good");
+    status.classList.add("good");
+  } else {
+    v = "NOT OK";
+    s = "INSUFFICIENT";
+    sub = `Negative margin: ${fmtNum(margin,0)} m`;
+    verdict.classList.add("bad");
+    status.classList.add("bad");
+  }
+
+  verdictText.textContent = `Verdict: ${v}`;
+  verdictSub.textContent = sub;
+  status.textContent = s;
+
+  // Details
+  const det = [];
+  det.push(`Mode=${MODE} · Table weight=${weight} kg`);
+  det.push(`PA=${fmtNum(pa,0)} ft · OAT=${fmtNum(oat,1)}°C`);
+  det.push(`Base (interpolated): GR=${gr0.value==null?"N/A":fmtNum(gr0.value,1)} m · 50ft=${d50.value==null?"N/A":fmtNum(d50.value,1)} m`);
+  det.push(`Factors: wind=${fmtNum(windFactor,3)} · runway=${fmtNum(runwayFactor,3)} · total=${fmtNum(windFactor*runwayFactor,3)}`);
+  if (notes.length) det.push(`Notes: ${notes.join(" | ")}`);
+  document.getElementById("details").textContent = det.join("\n");
+
+  updateIOSBar();
+  showAlert(warn);
+}
+
+function setWaiting(){
+  document.getElementById("hw").textContent = "—";
+  document.getElementById("hwdesc").textContent = "—";
+  document.getElementById("xw").textContent = "—";
+  document.getElementById("xwdesc").textContent = "—";
+  document.getElementById("dist").textContent = "—";
+  document.getElementById("distdesc").textContent = "—";
+  document.getElementById("margin").textContent = "—";
+  document.getElementById("margindesc").textContent = "—";
+  document.getElementById("details").textContent = "—";
+
+  const verdict = document.getElementById("verdict");
+  verdict.classList.remove("good","bad");
+  const status = document.getElementById("status");
+  status.classList.remove("good","bad","warn");
+  document.getElementById("verdictText").textContent = "Verdict: —";
+  document.getElementById("verdictSub").textContent = "Waiting for inputs";
+  status.textContent = "—";
+  updateIOSBar();
+}
+window.addEventListener("DOMContentLoaded", () => {
+  // Bind buttons safely (iOS bar is appended after the script in this build)
+  const iosBtn = document.getElementById("ios_compute");
+  if (iosBtn){
+    iosBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      compute();
+    });
+  }
+
+document.getElementById("compute").addEventListener("click", (e) => {
+  e.preventDefault();
+  compute();
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  for (const id of ["rwq","tora","wdir","wspd","pa","oat","slope"]){
+    document.getElementById(id).value = "";
+  }
+  document.getElementById("grasswet").checked = false;
+  document.getElementById("soft").checked = false;
+  document.querySelector('input[name="grassdry"][value="0"]').checked = true;
+  document.getElementById("outmode").value = "50";
+  document.getElementById("weight").value = "1999";
+  showAlert([]);
+  
+  // Initial UI state
+  setWaiting();
+  updateIOSBar();
+});
+});
+
+// Autocalc on Enter
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter"){
+    const tag = (e.target && e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "select"){
+      e.preventDefault();
+      compute();
+    }
+  }
+});
+
+
+</script>
+
+  <!-- iOS Sticky Summary Bar (visible on small screens) -->
+  <div class="iosbar" role="region" aria-label="Résumé performance">
+    <div class="inner">
+      <div class="kpis">
+        <div class="mini">
+          <div class="k">Distance</div>
+          <div class="v mono" id="ios_dist">—</div>
+        </div>
+        <div class="mini">
+          <div class="k">Marge TORA</div>
+          <div class="v mono" id="ios_margin">—</div>
+        </div>
+        <div class="mini">
+          <div class="k">Verdict</div>
+          <div class="v mono" id="ios_verdict">—</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="ios_compute">Compute</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
